@@ -2,6 +2,11 @@
   <img src="public/logo.png" alt="AI Search" width="120" height="120" style="background: #2a2a2a; border-radius: 20px; padding: 20px;"/>
 </div>
 
+> [!IMPORTANT]
+> **Addon does not work directly with Gemini AI provider, you can use Gemini using OpenRouter (Select Open AI Compatible in AI Provider)**
+>
+>
+
 # Stremio AI Search
 
 An intelligent search addon for Stremio powered by AI (Gemini-compatible or any OpenAI-compatible provider like OpenAI, OpenRouter, Z.ai). Get personalized movie and TV series recommendations based on natural language queries.
@@ -34,16 +39,38 @@ An intelligent search addon for Stremio powered by AI (Gemini-compatible or any 
 
 ## AI Provider Setup
 
+> [!IMPORTANT]
+> **Prefer OpenRouter over a direct Gemini API key.**
+>
+> Google has started rejecting requests from the hosted addon's server with a *"not allowed region"* error — ironically, the server is in Los Angeles. This left a lot of users unable to get any results at all. You can use 'Open AI compatible' AI provider and even select Gemini , which sidesteps the block completely.
+
 In the configuration page you can choose an AI provider:
 
-- **Gemini**: use a key from Google AI Studio and a Gemini model id (e.g. `gemini-2.5-flash-lite`)
-- **OpenAI-compatible**: works with OpenAI / OpenRouter / Z.ai / other OpenAI-compatible APIs
-  - Base URL examples: `https://api.openai.com`, `https://openrouter.ai/api`
-  - Model examples: `gpt-4o-mini`, `openai/gpt-4o-mini` (OpenRouter-style)
+- **OpenAI-compatible (recommended)**: works with OpenRouter / OpenAI / Z.ai / other OpenAI-compatible APIs
+  - Base URL examples: `https://openrouter.ai/api`, `https://api.openai.com`
+  - Model examples: `google/gemini-2.5-flash` (OpenRouter-style), `gpt-4o-mini`
   - Optional extra headers (JSON): `{"HTTP-Referer":"https://example.com","X-Title":"Stremio AI Search"}`
+- **Gemini**: use a key from Google AI Studio and a Gemini model id (e.g. `gemini-2.5-flash-lite`) — subject to the regional blocking described above
 
 Advanced option:
 - **AI Temperature**: controls randomness (lower is more deterministic; default `0.2`)
+
+### Getting fresh results with OpenRouter's `:online` suffix
+
+Every model has a training cutoff, so recency-sensitive searches — "latest french movies", "new series this year", anything naming the current year — tend to come back with titles that are a year or two out of date.
+
+OpenRouter can run a live web search and hand the results to the model before it answers. Enable it by appending **`:online`** to your model id:
+
+```
+google/gemini-2.5-flash:online
+```
+
+That is the entire change — no other setting to flip. In practice this makes a clear difference on "latest" and "new" style queries, which otherwise return stale recommendations.
+
+A couple of things worth knowing:
+
+- OpenRouter bills a small fee per web search on top of normal token cost. Check [OpenRouter's web search pricing](https://openrouter.ai/docs/features/web-search) for current rates.
+- It adds a second or two of latency per query, so it's a worthwhile trade when your searches lean toward new releases, and less so if you mostly search older or well-established titles.
 
 ## Customizing Your Homepage
 

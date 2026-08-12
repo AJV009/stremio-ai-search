@@ -623,6 +623,14 @@
             <div class="help-text">
               Use a model name supported by your provider (OpenRouter uses names
               like <code>openai/gpt-4o-mini</code>).
+              <br /><br />
+              <strong>OpenRouter tip:</strong> append <code>:online</code> to the
+              model name (e.g.
+              <code>google/gemini-2.5-flash:online</code>) to let the model
+              search the web before answering. This gives noticeably better
+              results for "latest" / "new" queries, which otherwise return titles
+              from the model's training cutoff. OpenRouter charges a small fee
+              per search.
             </div>
           </div>
 
@@ -1601,10 +1609,13 @@
         const geminiFields = document.getElementById("geminiFields");
         const openaiCompatFields = document.getElementById("openaiCompatFields");
         const geminiModelGroup = document.getElementById("geminiModelGroup");
+        const geminiGroundingGroup = document.getElementById("geminiGroundingGroup");
 
         if (geminiFields) geminiFields.style.display = provider === "gemini" ? "block" : "none";
         if (openaiCompatFields) openaiCompatFields.style.display = provider === "openai-compat" ? "block" : "none";
         if (geminiModelGroup) geminiModelGroup.style.display = provider === "gemini" ? "block" : "none";
+        // Grounding is a Gemini-only feature — hide it for OpenAI-compatible providers.
+        if (geminiGroundingGroup) geminiGroundingGroup.style.display = provider === "gemini" ? "block" : "none";
       }
 
       // Initialize the advanced section to be hidden on page load
