@@ -3840,6 +3840,7 @@ const catalogHandler = async function (args, req) {
       // model never emits an identifier, so hallucinated titles are impossible
       // by construction and recency comes from the API. Any failure returns
       // null and we fall through to the original behaviour untouched.
+      let structuredText = null;
       if (ENABLE_STRUCTURED_SEARCH && !isRecommendation) {
         try {
           const structured = await structuredSearch({
@@ -3856,16 +3857,20 @@ const catalogHandler = async function (args, req) {
             currentYear,
           });
           if (structured && structured.length) {
+            // Feed our picks INTO the existing pipeline rather than returning
+            // early. Returning a {recommendations} object here skipped all the
+            // downstream meta-building and produced an empty catalog. Emitting
+            // the same `type|name|year` text the AI would have produced means
+            // every existing step still runs — including upstream's
+            // pickBestTmdbResult, which now resolves these correctly because
+            // the titles and years come straight from TMDB Discover.
+            structuredText = structured
+              .map((m) => `${type}|${m.name}|${m.year}`)
+              .join("\n");
             logger.info("Structured search satisfied query", {
               query: searchQuery,
               count: structured.length,
             });
-            const structuredRecs = { movies: [], series: [] };
-            for (const item of structured) {
-              if (type === "movie") structuredRecs.movies.push(item);
-              else structuredRecs.series.push(item);
-            }
-            return { recommendations: structuredRecs, fromCache: false };
           }
         } catch (error) {
           logger.error("Structured search failed, using default flow", {
@@ -3885,7 +3890,7 @@ const catalogHandler = async function (args, req) {
       });
 
       // Use withRetry for the AI API call
-      const text = await withRetry(
+      const text = structuredText || await withRetry(
         async () => {
           try {
             const responseText = await aiClient.generateText(promptText);
