@@ -3846,7 +3846,11 @@ const catalogHandler = async function (args, req) {
             query: searchQuery,
             type,
             aiClient,
-            tmdbKey: TmdbApiKey,
+            // NOT a bare `TmdbApiKey` — that identifier is only destructured
+            // from configData much further down, inside a different handler.
+            // Referencing it here threw ReferenceError on every query, which the
+            // catch below swallowed into a silent fallback to the default flow.
+            tmdbKey: configData.TmdbApiKey,
             numResults,
             logger,
             currentYear,
